@@ -49,10 +49,9 @@
   "error_deleting_class": "Erreur lors de la suppression de la classe.",
   "attendance_page": "Page de présence",
   "page_coming_soon": "Cette page sera bientôt construite.",
-
   "attendance_title": "Gestion des Présences",
   "attendance_subtitle": "Sélectionnez un enseignant et une classe pour enregistrer les présences",
-  "select_teacher": "Enseignant",
+  "select_teacher": "Sélectionner un enseignant",
   "select_class": "Classe",
   "select_month": "Mois",
   "select_day": "Jour",
@@ -63,11 +62,11 @@
   "absent": "Absent",
   "not_recorded": "Non enregistré",
   "attendance_rate": "Taux de présence",
-  "search_student": "Rechercher un étudiant...",
+  "search_student": "Rechercher un étudiant",
   "mark_all_present": "Tout marquer présent",
   "mark_all_absent": "Tout marquer absent",
   "export": "Exporter",
-  "no_students_match_search": "Aucun étudiant ne correspond à cette recherche.",
+  "no_students_match_search": "Aucun étudiant ne correspond",
   "attendance_already_recorded": "La présence a déjà été enregistrée pour cette séance. Vous ne pouvez pas vous réinscrire pour éviter les doublons.",
   "saving": "Enregistrement...",
   "already_recorded": "Déjà enregistré",
@@ -77,7 +76,6 @@
   "error_loading_attendance": "Impossible de charger les données de présence.",
   "error_saving_attendance": "Erreur lors de l'enregistrement de la présence",
   "attendance_saved_success": "Présence enregistrée avec succès!",
-
   "subscriptions_title": "Gestion des Abonnements et Paiements",
   "subscriptions_subtitle": "Suivez les frais mensuels des étudiants et leur statut de présence",
   "all_classes": "Toutes les Classes",
@@ -96,7 +94,6 @@
   "class": "Classe",
   "payment_status": "Statut de Paiement",
   "subscription_csv_filename": "abonnements-{{month}}",
-
   "evaluations_title": "Évaluations et Notes des Étudiants",
   "evaluations_subtitle": "Écrivez vos notes sur la performance des étudiants à envoyer à leurs parents",
   "select_class_placeholder": "Sélectionner la classe",
@@ -110,10 +107,9 @@
   "saving_note": "Enregistrement...",
   "note_saved_success": "Enregistré avec succès",
   "previous_notes_history": "Historique des Notes Précédentes",
-  "no_students_in_class": "Aucun étudiant dans cette classe pour le moment.",
+  "no_students_in_class": "Aucun étudiant dans cette classe.",
   "loading_student_list": "Chargement de la liste des étudiants...",
   "note_saved_success_message": "Note enregistrée avec succès",
-
   "subjects_title": "Gestion des Matières",
   "subjects_subtitle": "Gérez les matières scolaires et leurs coefficients",
   "add_new_subject": "Ajouter une Nouvelle Matière",
@@ -128,8 +124,6 @@
   "delete_subject_confirm": "Êtes-vous sûr de vouloir supprimer la matière \"{{name}}\"?",
   "subject_deleted_success": "Matière supprimée avec succès",
   "error_deleting_subject": "Erreur lors de la suppression de la matière.",
-  "confirm_delete": "Confirmer la suppression",
-
   "today_title": "Mon Jour",
   "today_subtitle": "Bienvenue {{name}} — {{date}}",
   "what_session_now": "Quelle séance enseignez-vous maintenant?",
@@ -154,7 +148,6 @@
   "record_another_session": "Enregistrer une autre séance",
   "this_page_for_teachers_only": "Cette page est réservée aux enseignants",
   "account_not_linked_to_teacher": "Votre compte n'est pas lié à un dossier enseignant. Contactez l'administration.",
-
   "finance_title": "Rapport Financier",
   "finance_subtitle": "Aperçu des abonnements et des encaissements",
   "total_students_label": "Total Étudiants",
@@ -179,7 +172,6 @@
   "no_data": "—",
   "no_students_match_filter": "Aucun étudiant ne correspond au filtre",
   "finance_csv_filename": "rapport-financier-{{month}}",
-
   "student_saved_success": "Données de l'étudiant enregistrées avec succès",
   "student_deleted_success": "Étudiant supprimé avec succès",
   "error_deleting_student": "Erreur lors de la suppression de l'étudiant.",
@@ -189,8 +181,6 @@
   "birth_date": "Date de naissance",
   "parent_name": "Nom du tuteur",
   "parent_phone": "Téléphone du tuteur",
-  "select_teacher": "Sélectionner un enseignant",
-  "no_students_in_class": "Aucun étudiant dans cette classe.",
   "teacher_not_assigned": "Cet enseignant n'est assigné à aucune classe.",
   "attendance_history": "Historique de présence",
   "no_attendance_records": "Aucun enregistrement de présence pour cet étudiant.",
@@ -200,8 +190,6 @@
   "close": "Fermer",
   "delete_student": "Supprimer l'étudiant",
   "delete_student_message": "Êtes-vous sûr de vouloir supprimer l'étudiant \"{{name}}\"? Cette action est irréversible.",
-
-
   "student_report_subtitle": "Recherchez un étudiant pour voir son rapport complet imprimable",
   "search_by_name": "Rechercher par nom d'étudiant...",
   "attendance_last_4_months": "Présence — 4 Derniers Mois",
@@ -216,5 +204,7 @@
   "paid_status": "Payé",
   "unpaid_status": "Non payé",
   "parent_guardian": "Tuteur:",
-  "attendance_rate_label": "Taux de Présence"
+  "attendance_rate_label": "Taux de Présence",
+  "with_phone": "Avec téléphone",
+  "without_phone": "Sans téléphone"
 }

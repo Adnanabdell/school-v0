@@ -62,11 +62,11 @@
   "absent": "غائب",
   "not_recorded": "لم يسجل",
   "attendance_rate": "نسبة الحضور",
-  "search_student": "ابحث عن طالب...",
+  "search_student": "ابحث عن طالب",
   "mark_all_present": "تحديد الكل حاضر",
   "mark_all_absent": "تحديد الكل غائب",
   "export": "تصدير",
-  "no_students_match_search": "لا يوجد طلاب يطابقون هذا البحث.",
+  "no_students_match_search": "لا يوجد طلاب يطابقون البحث",
   "attendance_already_recorded": "تم تسجيل الحضور مسبقاً لهذه الحصة. لا يمكنك إعادة التسجيل لتجنب التكرار.",
   "saving": "جاري الحفظ...",
   "already_recorded": "تم التسجيل مسبقاً",
@@ -204,5 +204,7 @@
   "paid_status": "مدفوع",
   "unpaid_status": "غير مدفوع",
   "parent_guardian": "ولي الأمر:",
-  "attendance_rate_label": "معدل الحضور"
+  "attendance_rate_label": "معدل الحضور",
+  "with_phone": "لديهم هاتف",
+  "without_phone": "بدون هاتف"
 }

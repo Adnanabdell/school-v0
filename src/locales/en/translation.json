@@ -49,10 +49,9 @@
   "error_deleting_class": "Error deleting class.",
   "attendance_page": "Attendance Page",
   "page_coming_soon": "This page will be built soon.",
-
   "attendance_title": "Attendance Management",
   "attendance_subtitle": "Select a teacher and class to record attendance",
-  "select_teacher": "Teacher",
+  "select_teacher": "Select teacher",
   "select_class": "Class",
   "select_month": "Month",
   "select_day": "Day",
@@ -63,11 +62,11 @@
   "absent": "Absent",
   "not_recorded": "Not recorded",
   "attendance_rate": "Attendance rate",
-  "search_student": "Search for a student...",
+  "search_student": "Search for a student",
   "mark_all_present": "Mark all present",
   "mark_all_absent": "Mark all absent",
   "export": "Export",
-  "no_students_match_search": "No students match this search.",
+  "no_students_match_search": "No students match the search",
   "attendance_already_recorded": "Attendance has already been recorded for this session. You cannot re-register to avoid duplication.",
   "saving": "Saving...",
   "already_recorded": "Already recorded",
@@ -77,7 +76,6 @@
   "error_loading_attendance": "Cannot load attendance data.",
   "error_saving_attendance": "Error saving attendance",
   "attendance_saved_success": "Attendance saved successfully!",
-
   "subscriptions_title": "Subscriptions & Payments Management",
   "subscriptions_subtitle": "Track monthly student fees and attendance status",
   "all_classes": "All Classes",
@@ -96,7 +94,6 @@
   "class": "Class",
   "payment_status": "Payment Status",
   "subscription_csv_filename": "subscriptions-{{month}}",
-
   "evaluations_title": "Student Evaluations & Notes",
   "evaluations_subtitle": "Write your notes on student performance to send to their parents later",
   "select_class_placeholder": "Select class",
@@ -110,10 +107,9 @@
   "saving_note": "Saving...",
   "note_saved_success": "Saved successfully",
   "previous_notes_history": "Previous Notes History",
-  "no_students_in_class": "No students in this class currently.",
+  "no_students_in_class": "No students in this class yet.",
   "loading_student_list": "Loading student list...",
   "note_saved_success_message": "Note saved successfully",
-
   "subjects_title": "Subject Management",
   "subjects_subtitle": "Manage academic subjects and their coefficients",
   "add_new_subject": "Add New Subject",
@@ -128,8 +124,6 @@
   "delete_subject_confirm": "Are you sure you want to delete the subject \"{{name}}\"?",
   "subject_deleted_success": "Subject deleted successfully",
   "error_deleting_subject": "Error deleting subject.",
-  "confirm_delete": "Confirm Delete",
-
   "today_title": "My Day",
   "today_subtitle": "Welcome {{name}} — {{date}}",
   "what_session_now": "Which session are you teaching now?",
@@ -154,7 +148,6 @@
   "record_another_session": "Record another session",
   "this_page_for_teachers_only": "This page is for teachers only",
   "account_not_linked_to_teacher": "Your account is not linked to a teacher record. Contact administration.",
-
   "finance_title": "Financial Report",
   "finance_subtitle": "Overview of subscriptions and collections",
   "total_students_label": "Total Students",
@@ -179,7 +172,6 @@
   "no_data": "—",
   "no_students_match_filter": "No students match the filter",
   "finance_csv_filename": "financial-report-{{month}}",
-
   "student_saved_success": "Student data saved successfully",
   "student_deleted_success": "Student deleted successfully",
   "error_deleting_student": "Error deleting student.",
@@ -189,8 +181,6 @@
   "birth_date": "Birth Date",
   "parent_name": "Guardian Name",
   "parent_phone": "Guardian Phone",
-  "select_teacher": "Select teacher",
-  "no_students_in_class": "No students in this class yet.",
   "teacher_not_assigned": "This teacher is not assigned to any class.",
   "attendance_history": "Attendance History",
   "no_attendance_records": "No attendance records for this student yet.",
@@ -200,8 +190,6 @@
   "close": "Close",
   "delete_student": "Delete Student",
   "delete_student_message": "Are you sure you want to delete the student \"{{name}}\"? This action cannot be undone.",
-
-
   "student_report_subtitle": "Search for a student to view their comprehensive printable report",
   "search_by_name": "Search by student name...",
   "attendance_last_4_months": "Attendance — Last 4 Months",
@@ -216,5 +204,7 @@
   "paid_status": "Paid",
   "unpaid_status": "Unpaid",
   "parent_guardian": "Guardian:",
-  "attendance_rate_label": "Attendance Rate"
+  "attendance_rate_label": "Attendance Rate",
+  "with_phone": "Have phone",
+  "without_phone": "Without phone"
 }

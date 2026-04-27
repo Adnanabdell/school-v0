@@ -1,8 +1,8 @@
 // src/pages/Students.tsx
-import React, { useEffect, useState, useMemo, FC, PropsWithChildren, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient.ts';
 import { useTranslation } from 'react-i18next';
-import { Plus, ChevronDown, User, Book, Phone, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Plus, Search, User, Phone, Book, Calendar, Edit, Trash2, AlertTriangle, X, Users, Filter } from 'lucide-react';
 
 // --- TYPES --- //
 interface Student {
@@ -18,36 +18,7 @@ interface Class {
   id: string;
   name: string;
   students: Student[];
-  teachers: { id: string; full_name: string }[];
 }
-
-interface Teacher {
-  id: string;
-  full_name: string;
-  classes: Class[];
-}
-
-// --- UI COMPONENTS --- //
-const AccordionItem: FC<PropsWithChildren<{ title: string; subtitle: string }>> = ({ title, subtitle, children }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <div className="border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-            <button onClick={() => setIsOpen(!isOpen)} className="w-full text-right p-4 flex justify-between items-center transition-colors duration-300 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                        <Book className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                        <p className="font-bold text-slate-900 dark:text-white">{title}</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
-                    </div>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-slate-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isOpen && <div className="pb-4 px-4 bg-slate-50/50 dark:bg-slate-900/20">{children}</div>}
-        </div>
-    );
-};
 
 // --- MODAL COMPONENTS --- //
 const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
@@ -99,23 +70,23 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
                             <p className="text-slate-500 dark:text-slate-400">{t('loading')}</p>
                         </div>
                     ) : history.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {history.map((record, index) => (
-                                <div key={record.id || index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-all">
+                                <div key={record.id || index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`} />
+                                        <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-emerald-500' : 'bg-red-500'}`} />
                                         <div>
-                                            <p className="text-slate-900 dark:text-white font-bold">
-                                                {record.status === 'present' ? t('present') : t('absent')} - {t('day')} {record.day_number} - {t('session')} {record.session_number}
+                                            <p className="text-slate-900 dark:text-white font-bold text-sm">
+                                                {record.status === 'present' ? t('present') : t('absent')} — {t('day')} {record.day_number} — {t('session')} {record.session_number}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                                 {record.month_year} | {new Date(record.created_at).toLocaleDateString('ar-DZ')}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-left">
                                         <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">{record.classes?.name}</p>
-                                        <p className="text-[10px] text-slate-400 italic">{t('by')} {record.teachers?.full_name}</p>
+                                        <p className="text-[10px] text-slate-400">{t('by')} {record.teachers?.full_name}</p>
                                     </div>
                                 </div>
                             ))}
@@ -147,34 +118,19 @@ const FloatingLabelInput = ({ id, name, type, value, onChange, label, required }
     </div>
 );
 
-const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubmit, teachers, allClasses }: any) => {
+const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubmit, allClasses }: any) => {
     const { t } = useTranslation();
     const [formData, setFormData] = useState<Partial<Student> | null>(null);
-    const [modalSelectedTeacherId, setModalSelectedTeacherId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             setFormData(student ? { ...student } : { full_name: '', birth_date: '', parent_name: '', parent_phone: '', class_id: null });
-            if (student?.class_id) {
-                const teacher = teachers.find((t: Teacher) => t.classes.some((c: Class) => c.id === student.class_id));
-                if (teacher) {
-                    setModalSelectedTeacherId(teacher.id);
-                }
-            } else {
-                setModalSelectedTeacherId(null);
-            }
         }
-    }, [isOpen, student, teachers]);
+    }, [isOpen, student]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => (prev ? { ...prev, [name]: value } : null));
-    };
-
-    const handleTeacherChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const teacherId = e.target.value;
-        setModalSelectedTeacherId(teacherId);
-        setFormData(prev => (prev ? { ...prev, class_id: '' } : null));
     };
 
     const localHandleSubmit = (e: React.FormEvent) => {
@@ -188,33 +144,27 @@ const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubm
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
-            <div className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg mx-auto transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg mx-auto transition-all duration-300" onClick={(e) => e.stopPropagation()}>
                 <form onSubmit={localHandleSubmit}>
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{formData.id ? t('edit_student') : t('add_student')}</h3>
                             <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
                         </div>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                             <div className="sm:col-span-2"><FloatingLabelInput id="full_name" name="full_name" type="text" value={formData.full_name || ''} onChange={handleFormChange} label={t('full_name')} required /></div>
                             <div><FloatingLabelInput id="birth_date" name="birth_date" type="date" value={formData.birth_date || ''} onChange={handleFormChange} label={t('birth_date')} /></div>
                             <div><FloatingLabelInput id="parent_name" name="parent_name" type="text" value={formData.parent_name || ''} onChange={handleFormChange} label={t('parent_name')} /></div>
                             <div className="sm:col-span-2"><FloatingLabelInput id="parent_phone" name="parent_phone" type="text" value={formData.parent_phone || ''} onChange={handleFormChange} label={t('parent_phone')} /></div>
-                            <div>
-                                <select id="teacher_id" value={modalSelectedTeacherId || ''} onChange={handleTeacherChange} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="">{t('select_teacher')}</option>
-                                    {teachers.map((t: Teacher) => (<option key={t.id} value={t.id}>{t.full_name}</option>))}
-                                </select>
-                            </div>
-                            <div>
+                            <div className="sm:col-span-2">
                                 <select name="class_id" id="class_id" value={formData.class_id || ''} onChange={handleFormChange} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">{t('select_class')}</option>
-                                    {(modalSelectedTeacherId ? teachers.find((t: Teacher) => t.id === modalSelectedTeacherId)?.classes : allClasses)?.map((c: Class) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                                    {allClasses?.map((c: Class) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-4 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-3 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
                         <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-500 transition-colors">{t('save')}</button>
                     </div>
@@ -229,7 +179,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => 
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
-            <div className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-md mx-auto transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="p-6 text-center">
                     <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
                         <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
@@ -237,7 +187,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => 
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('delete_student')}</h3>
                     <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t('delete_student_message', { name: student?.full_name })}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-4 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
+                <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-3 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
                     <button onClick={handleDelete} className="px-4 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-500 transition-colors">{t('confirm_delete')}</button>
                 </div>
@@ -246,23 +196,105 @@ const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => 
     );
 };
 
+// --- STUDENT CARD COMPONENT --- //
+const StudentCard = ({ student, onEdit, onDelete, onHistory }: {
+    student: Student;
+    onEdit: () => void;
+    onDelete: () => void;
+    onHistory: () => void;
+}) => {
+    const { t } = useTranslation();
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-600 transition-all duration-300 overflow-hidden group">
+            {/* Card Header */}
+            <div className="bg-gradient-to-l from-indigo-600 to-indigo-500 px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg leading-tight">{student.full_name}</h3>
+                        {student.className && (
+                            <p className="text-indigo-200 text-xs flex items-center gap-1 mt-0.5">
+                                <Book className="w-3 h-3" /> {student.className}
+                            </p>
+                        )}
+                    </div>
+                </div>
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={onHistory} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors" title={t('attendance_history')}>
+                        <Calendar className="w-4 h-4 text-white" />
+                    </button>
+                    <button onClick={onEdit} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors" title={t('edit')}>
+                        <Edit className="w-4 h-4 text-white" />
+                    </button>
+                    <button onClick={onDelete} className="w-8 h-8 bg-red-500/60 hover:bg-red-500 rounded-lg flex items-center justify-center transition-colors" title={t('delete')}>
+                        <Trash2 className="w-4 h-4 text-white" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-5 space-y-3">
+                {student.parent_name && (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">{t('parent_name')}</p>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{student.parent_name}</p>
+                        </div>
+                    </div>
+                )}
+
+                {student.parent_phone && (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">{t('phone')}</p>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 direction-ltr text-right">{student.parent_phone}</p>
+                        </div>
+                    </div>
+                )}
+
+                {student.birth_date && (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">{t('birth_date')}</p>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{student.birth_date}</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // --- MAIN PAGE COMPONENT --- //
 export default function Students() {
   const { t } = useTranslation();
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [allClasses, setAllClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState<Partial<Student> | null>(null);
+  const [currentStudent, setCurrentStudent] = useState<any>(null);
 
-  // --- DATA FETCHING (Optimized with JOINs like Teachers.tsx) --- //
+  // --- DATA FETCHING --- //
   useEffect(() => {
     fetchData();
   }, []);
@@ -271,61 +303,41 @@ export default function Students() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch all teachers with their classes (single query with JOIN)
-      const { data: teachersData, error: teachersError } = await supabase
-        .from('teachers')
-        .select(`id, full_name, class_teachers ( classes (id, name) )`);
+      // 1. Fetch all classes with teachers
+      const { data: classesData, error: classesError } = await supabase
+        .from('classes')
+        .select(`id, name, class_teachers ( teachers (id, full_name) )`);
 
-      if (teachersError) throw teachersError;
+      if (classesError) throw classesError;
 
-      // 2. Fetch all students (single query)
+      // 2. Fetch all students
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
         .select('id, full_name, birth_date, parent_name, parent_phone, class_id');
 
       if (studentsError) throw studentsError;
 
-      // Transform teachers with nested classes
-      const transformedTeachers = (teachersData || []).map((t: any) => ({
-        id: t.id,
-        full_name: t.full_name,
-        classes: (t.class_teachers || [])
-          .map((ct: any) => ct.classes)
-          .filter(Boolean)
-          .map((c: any) => ({
-            ...c,
-            students: (studentsData || []).filter((s: any) => s.class_id === c.id),
-            teachers: []
-          }))
+      // Transform: classes with their students
+      const classesWithStudents = (classesData || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        students: (studentsData || []).filter((s: any) => s.class_id === c.id),
+        teachers: (c.class_teachers || []).map((ct: any) => ct.teachers).filter(Boolean)
       }));
 
-      setTeachers(transformedTeachers);
-
-      if (transformedTeachers.length > 0 && !selectedTeacherId) {
-        setSelectedTeacherId(transformedTeachers[0].id);
-      }
-
-      // All classes with their students
-      const classMap = new Map();
-      (studentsData || []).forEach((s: any) => {
-        if (s.class_id) {
-          if (!classMap.has(s.class_id)) {
-            classMap.set(s.class_id, []);
-          }
-          classMap.get(s.class_id).push(s);
-        }
+      // Add className to each student for display
+      const studentsWithClassName = (studentsData || []).map((s: any) => {
+        const cls = classesWithStudents.find((c: any) => c.id === s.class_id);
+        return { ...s, className: cls?.name || '' };
       });
 
-      // Get unique classes from teachers' class_teachers
-      const uniqueClasses = Array.from(
-        new Map(
-          transformedTeachers
-            .flatMap((t: Teacher) => t.classes)
-            .map((c: any) => [c.id, { ...c, students: classMap.get(c.id) || [] }])
-        ).values()
-      );
+      setAllClasses(classesWithStudents);
+      if (classesWithStudents.length > 0 && !selectedClassId) {
+        setSelectedClassId(null); // "All" by default
+      }
 
-      setAllClasses(uniqueClasses);
+      // Set students with className attached
+      setClasses(studentsWithClassName);
 
     } catch (error: any) {
       console.error('Error fetching data:', error);
@@ -335,19 +347,19 @@ export default function Students() {
     }
   };
 
-  const openModal = useCallback((student: Partial<Student> | null = null) => {
+  const openModal = useCallback((student: any = null) => {
     setCurrentStudent(student ? { ...student } : { full_name: '', birth_date: '', parent_name: '', parent_phone: '', class_id: null });
     setIsModalOpen(true);
   }, []);
 
   const closeModal = useCallback(() => setIsModalOpen(false), []);
-  const openDeleteConfirm = useCallback((student: Student) => {
+  const openDeleteConfirm = useCallback((student: any) => {
     setCurrentStudent(student);
     setIsDeleteConfirmOpen(true);
   }, []);
   const closeDeleteConfirm = useCallback(() => setIsDeleteConfirmOpen(false), []);
 
-  const openHistory = useCallback((student: Student) => {
+  const openHistory = useCallback((student: any) => {
     setCurrentStudent(student);
     setIsHistoryModalOpen(true);
   }, []);
@@ -388,12 +400,40 @@ export default function Students() {
     }
   }, [currentStudent, closeDeleteConfirm, fetchData, t]);
 
-  const selectedTeacher = useMemo(() => teachers.find(t => t.id === selectedTeacherId), [selectedTeacherId, teachers]);
+  // Filter students by class and search
+  const filteredStudents = useMemo(() => {
+    let result = classes;
 
-  // --- RENDER --- //
+    // Class filter
+    if (selectedClassId) {
+      result = result.filter((s: any) => s.class_id === selectedClassId);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((s: any) =>
+        s.full_name.toLowerCase().includes(q) ||
+        (s.parent_name && s.parent_name.toLowerCase().includes(q)) ||
+        (s.parent_phone && s.parent_phone.includes(q))
+      );
+    }
+
+    return result;
+  }, [classes, selectedClassId, searchQuery]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const total = classes.length;
+    const withPhone = classes.filter((s: any) => s.parent_phone).length;
+    const noPhone = total - withPhone;
+    return { total, withPhone, noPhone };
+  }, [classes]);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans p-4 sm:p-6 lg:p-8 transition-colors">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div>
@@ -405,118 +445,117 @@ export default function Students() {
           </button>
         </header>
 
-        {/* Success & Error States */}
+        {/* Success & Error */}
         {successMessage && (
-          <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+          <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-lg flex items-center gap-3">
             <span>{successMessage}</span>
           </div>
         )}
         {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-3">
             <AlertTriangle className="w-5 h-5" />
             <span>{error}</span>
           </div>
         )}
-        {loading && <div className="text-center py-10 text-slate-400">{t('loading')}</div>}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-500 dark:text-slate-400">{t('loading')}</p>
+          </div>
+        )}
 
         {/* Main Content */}
         {!loading && (
-          <div>
-            {/* Teacher Tabs */}
-            {teachers.length > 0 && (
-              <div className="flex items-center border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto scrollbar-hide">
-                {teachers.map(teacher => (
-                  <button key={teacher.id} onClick={() => setSelectedTeacherId(teacher.id)} className={`px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors duration-300 relative ${selectedTeacherId === teacher.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'}`}>
-                    {teacher.full_name}
-                    {selectedTeacherId === teacher.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />}
-                  </button>
+          <>
+            {/* Stats Bar */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('total_students')}</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Phone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.withPhone}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('with_phone')}</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Phone className="w-5 h-5 text-red-500" />
+                </div>
+                <p className="text-2xl font-bold text-red-500">{stats.noPhone}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('without_phone')}</p>
+              </div>
+            </div>
+
+            {/* Filters Row */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={`${t('search_student')}...`}
+                  className="w-full pr-10 pl-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Class Filter */}
+              <div className="relative min-w-[180px]">
+                <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                <select
+                  value={selectedClassId || ''}
+                  onChange={(e) => setSelectedClassId(e.target.value || null)}
+                  className="w-full appearance-none pr-10 pl-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="">{t('all_classes')}</option>
+                  {allClasses.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.students.length})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Student Cards Grid */}
+            {filteredStudents.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredStudents.map((student: any) => (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    onEdit={() => openModal(student)}
+                    onDelete={() => openDeleteConfirm(student)}
+                    onHistory={() => openHistory(student)}
+                  />
                 ))}
               </div>
-            )}
-
-            {/* Student Accordions */}
-            {selectedTeacher && (
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                {selectedTeacher.classes.length > 0 ? (
-                  selectedTeacher.classes.map(c => (
-                    <AccordionItem key={c.id} title={c.name} subtitle={`${c.students.length} ${t('student').toLowerCase()}`}>
-                      {c.students.length > 0 ? (
-                        <>
-                          {/* Desktop Table View */}
-                          <div className="hidden sm:block">
-                            <table className="min-w-full">
-                              <thead className="border-b border-slate-100 dark:border-slate-700">
-                                <tr>
-                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('full_name')}</th>
-                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('parent_name')}</th>
-                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('birth_date')}</th>
-                                  <th className="relative px-6 py-3"><span className="sr-only">{t('actions')}</span></th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                                {c.students.map(student => (
-                                  <tr key={student.id} className="group hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors duration-200">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                                        <button
-                                            onClick={() => openHistory(student)}
-                                            className="text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-right w-full"
-                                        >
-                                            {student.full_name}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{student.parent_name || '-'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{student.birth_date || '-'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
-                                      <div className="flex justify-end gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <button onClick={() => openModal(student)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"><Edit className="w-4 h-4" /></button>
-                                        <button onClick={() => openDeleteConfirm(student)} className="text-red-600 dark:text-red-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-
-                          {/* Mobile Card View */}
-                          <div className="sm:hidden space-y-3 pt-2">
-                            {c.students.map(student => (
-                              <div key={student.id} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
-                                <div className="flex justify-between items-start mb-2">
-                                  <button onClick={() => openHistory(student)} className="text-slate-900 dark:text-white font-bold text-lg text-right">
-                                    {student.full_name}
-                                  </button>
-                                  <div className="flex gap-3">
-                                    <button onClick={() => openModal(student)} className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400"><Edit className="w-5 h-5" /></button>
-                                    <button onClick={() => openDeleteConfirm(student)} className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400"><Trash2 className="w-5 h-5" /></button>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                  <User className="w-4 h-4" />
-                                  <span>{t('parent_name')}: {student.parent_name || '-'}</span>
-                                </div>
-                                {student.parent_phone && (
-                                  <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-500 mt-1">
-                                    <Phone className="w-4 h-4" />
-                                    <span>{t('phone')}: {student.parent_phone}</span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      ) : <p className="text-slate-400 text-sm p-6 text-center">{t('no_students_in_class')}</p>}
-                    </AccordionItem>
-                  ))
-                ) : <p className="text-slate-400 text-sm p-6 text-center">{t('teacher_not_assigned')}</p>}
+            ) : (
+              <div className="text-center py-20">
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-10 h-10 text-slate-400" />
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">{searchQuery ? t('no_students_match_search') : t('no_students_in_class')}</p>
+                <button onClick={() => openModal()} className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors">
+                  {t('add_student')}
+                </button>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
       {/* Modals */}
-      <StudentModal isOpen={isModalOpen} onClose={closeModal} student={currentStudent} handleSubmit={handleSubmit} teachers={teachers} allClasses={allClasses} />
+      <StudentModal isOpen={isModalOpen} onClose={closeModal} student={currentStudent} handleSubmit={handleSubmit} allClasses={allClasses} />
       <DeleteConfirmModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} student={currentStudent} handleDelete={handleDelete} />
       <AttendanceHistoryModal isOpen={isHistoryModalOpen} onClose={closeHistory} student={currentStudent} />
     </div>
