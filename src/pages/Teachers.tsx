@@ -167,7 +167,7 @@ export default function Teachers() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('manage_teachers')}</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">إدارة طاقم التدريس وتعيين الصفوف</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">إدارة طاقم التدريس وتعيين الأقسام</p>
         </div>
         <button
           onClick={() => openModal()}

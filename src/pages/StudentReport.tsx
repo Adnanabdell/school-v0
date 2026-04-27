@@ -1,6 +1,6 @@
 // src/pages/StudentReport.tsx
-// ✨ ميزة جديدة: تقرير طالب شامل — قابل للطباعة ومناسب لاجتماعات الأولياء
 import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.ts';
 import {
   User, Search, BookOpen, Calendar, MessageSquare,
@@ -16,6 +16,7 @@ interface StudentResult { id: string; full_name: string; className: string; pare
 interface MonthStat { month: string; label: string; present: number; absent: number; total: number; rate: number; }
 
 export default function StudentReport() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<StudentResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -27,10 +28,9 @@ export default function StudentReport() {
   const [loadingReport, setLoadingReport] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Search
   useEffect(() => {
     if (query.trim().length < 2) { setResults([]); return; }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       setSearching(true);
       const { data } = await supabase
         .from('students')
@@ -45,7 +45,7 @@ export default function StudentReport() {
       })));
       setSearching(false);
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [query]);
 
   const selectStudent = async (s: StudentResult) => {
@@ -54,7 +54,6 @@ export default function StudentReport() {
     setResults([]);
     setLoadingReport(true);
 
-    // Last 4 months
     const months: string[] = [];
     for (let i = 3; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -67,7 +66,6 @@ export default function StudentReport() {
       supabase.from('subscriptions').select('month_year, status, paid_at').eq('student_id', s.id).in('month_year', months),
     ]);
 
-    // Build per-month attendance stats
     const attMap: Record<string, { present: number; absent: number }> = {};
     (attRes.data || []).forEach((r: any) => {
       if (!attMap[r.month_year]) attMap[r.month_year] = { present: 0, absent: 0 };
@@ -103,25 +101,23 @@ export default function StudentReport() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
 
-        {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl">
             <Printer className="w-6 h-6 text-rose-600 dark:text-rose-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">تقرير الطالب</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">ابحث عن طالب لعرض تقريره الشامل القابل للطباعة</p>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">{t('student_report_title')}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t('student_report_subtitle')}</p>
           </div>
         </div>
 
-        {/* Search box */}
         <div className="relative mb-8">
           <div className="relative">
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="ابحث باسم الطالب..."
+              placeholder={t('search_by_name')}
               className="w-full py-4 pr-12 pl-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 shadow-sm text-base"
             />
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -147,20 +143,17 @@ export default function StudentReport() {
           )}
         </div>
 
-        {/* Report */}
         {selected && (
           <div>
-            {/* Print button */}
             <div className="flex justify-end mb-4 print:hidden">
               <button onClick={handlePrint}
                 className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity shadow-lg">
-                <Printer className="w-4 h-4" /> طباعة / حفظ PDF
+                <Printer className="w-4 h-4" /> {t('print_save_pdf')}
               </button>
             </div>
 
             <div ref={printRef} className="space-y-6">
 
-              {/* ── Identity card ── */}
               <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm print:shadow-none print:border-2">
                 <div className="flex items-start gap-5">
                   <div className="w-16 h-16 bg-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-600/20 shrink-0">
@@ -170,13 +163,13 @@ export default function StudentReport() {
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white">{selected.full_name}</h2>
                     <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" /> {selected.className}</span>
-                      <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> ولي الأمر: {selected.parent_name}</span>
+                      <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> {t('parent_guardian')} {selected.parent_name}</span>
                       {selected.parent_phone !== '—' && <span>📞 {selected.parent_phone}</span>}
                     </div>
                   </div>
                   <div className="text-center shrink-0">
                     <p className={`text-4xl font-black ${overallRate >= 80 ? 'text-emerald-600' : overallRate >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{overallRate}%</p>
-                    <p className="text-xs text-slate-500 font-medium">معدل الحضور</p>
+                    <p className="text-xs text-slate-500 font-medium">{t('attendance_rate_label')}</p>
                   </div>
                 </div>
               </div>
@@ -187,11 +180,10 @@ export default function StudentReport() {
                 </div>
               ) : (
                 <>
-                  {/* ── Monthly attendance chart ── */}
                   <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                     <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-5">
                       <Calendar className="w-5 h-5 text-indigo-500" />
-                      الحضور — آخر 4 أشهر
+                      {t('attendance_last_4_months')}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {monthStats.map(m => (
@@ -203,12 +195,11 @@ export default function StudentReport() {
                         }`}>
                           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">{m.label}</p>
                           {m.total === 0 ? (
-                            <p className="text-sm text-slate-400 font-medium">لا بيانات</p>
+                            <p className="text-sm text-slate-400 font-medium">{t('no_data_label')}</p>
                           ) : (
                             <>
                               <p className={`text-3xl font-black ${m.rate >= 80 ? 'text-emerald-700 dark:text-emerald-400' : m.rate >= 60 ? 'text-amber-700 dark:text-amber-400' : 'text-red-700 dark:text-red-400'}`}>{m.rate}%</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.present} حاضر / {m.absent} غائب</p>
-                              {/* Mini progress bar */}
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.present} {t('present')} / {m.absent} {t('absent')}</p>
                               <div className="mt-2 h-1.5 bg-white/70 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div className={`h-full rounded-full ${m.rate >= 80 ? 'bg-emerald-500' : m.rate >= 60 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${m.rate}%` }} />
                               </div>
@@ -219,11 +210,10 @@ export default function StudentReport() {
                     </div>
                   </div>
 
-                  {/* ── Subscriptions ── */}
                   <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                     <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                       <TrendingUp className="w-5 h-5 text-emerald-500" />
-                      الاشتراكات — آخر 4 أشهر
+                      {t('subscriptions_last_4_months')}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {monthStats.map(m => {
@@ -240,7 +230,7 @@ export default function StudentReport() {
                             }
                             <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{m.label}</p>
                             <p className={`text-xs font-black mt-0.5 ${paid ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
-                              {paid ? 'مدفوع' : 'غير مدفوع'}
+                              {paid ? t('paid_status') : t('unpaid_status')}
                             </p>
                           </div>
                         );
@@ -248,22 +238,21 @@ export default function StudentReport() {
                     </div>
                   </div>
 
-                  {/* ── Evaluations ── */}
                   <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                     <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                       <MessageSquare className="w-5 h-5 text-rose-500" />
-                      ملاحظات المدرسين
+                      {t('teacher_notes')}
                       <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 px-2 py-0.5 rounded-full">{evaluations.length}</span>
                     </h3>
                     {evaluations.length === 0 ? (
-                      <p className="text-sm text-slate-400 text-center py-6">لا توجد ملاحظات مسجلة حتى الآن</p>
+                      <p className="text-sm text-slate-400 text-center py-6">{t('no_notes_registered')}</p>
                     ) : (
                       <div className="space-y-3">
                         {evaluations.map((ev, i) => (
                           <div key={i} className="relative pl-4 border-r-4 border-rose-400 bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4">
                             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{ev.note}</p>
                             <div className="flex items-center gap-3 mt-2">
-                              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">{ev.teachers?.full_name || 'مدرس'}</span>
+                              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">{ev.teachers?.full_name || t('teachers_label')}</span>
                               <span className="text-xs text-slate-400">{new Date(ev.created_at).toLocaleDateString('ar-DZ', { dateStyle: 'long' })}</span>
                             </div>
                           </div>
@@ -272,9 +261,8 @@ export default function StudentReport() {
                     )}
                   </div>
 
-                  {/* Print footer */}
                   <div className="hidden print:block text-center text-xs text-slate-400 pt-4 border-t border-slate-200">
-                    تم إنشاء هذا التقرير بتاريخ {new Date().toLocaleDateString('ar-DZ', { dateStyle: 'full' })} — نظام إدارة المدرسة
+                    {t('report_generation_date', { date: new Date().toLocaleDateString('ar-DZ', { dateStyle: 'full' }) })}
                   </div>
                 </>
               )}
@@ -282,19 +270,17 @@ export default function StudentReport() {
           </div>
         )}
 
-        {/* Empty state */}
         {!selected && (
           <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
             <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-3xl flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-rose-400" />
             </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">ابدأ بالبحث عن اسم الطالب</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">ستظهر التقارير جاهزة للطباعة أو المشاركة</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">{t('start_search_student')}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">{t('reports_ready_to_print')}</p>
           </div>
         )}
       </div>
 
-      {/* Print styles */}
       <style>{`
         @media print {
           body * { visibility: hidden; }

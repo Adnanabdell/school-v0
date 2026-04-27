@@ -1,6 +1,7 @@
 // src/pages/Today.tsx
 // ✨ ميزة جديدة: صفحة "يومي" — المدرس يختار الحصة فقط، الباقي يملأ تلقائياً
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.ts';
 import { CheckCircle, XCircle, Clock, BookOpen, Save, AlertTriangle, Check, Zap, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { showError, showSuccess } from '../utils/errorHandler';
@@ -14,6 +15,7 @@ const ARABIC_MONTHS = [
 ];
 
 export default function Today() {
+  const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const currentMonthYear = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   const currentDay = today.getDate();
@@ -161,7 +163,7 @@ export default function Today() {
     if (error) {
       showError(error);
     } else {
-      showSuccess('تم حفظ الحضور بنجاح!');
+      showSuccess(t('attendance_saved_success'));
       setHasExisting(true);
       setStep('done');
     }
@@ -189,8 +191,8 @@ export default function Today() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-8">
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-          <p className="text-slate-700 dark:text-slate-300 font-bold text-lg">هذه الصفحة للمدرسين فقط</p>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">حسابك غير مرتبط بسجل مدرس. تواصل مع الإدارة.</p>
+          <p className="text-slate-700 dark:text-slate-300 font-bold text-lg">{t('this_page_for_teachers_only')}</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">{t('account_not_linked_to_teacher')}</p>
         </div>
       </div>
     );
@@ -206,10 +208,10 @@ export default function Today() {
             <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl">
               <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">يومي السريع</h1>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">{t('today_title')}</h1>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm mr-12">
-            مرحباً <span className="font-bold text-slate-700 dark:text-slate-300">{teacherName}</span> — {dayLabel}
+            {t('today_subtitle', { name: teacherName, date: dayLabel })}
           </p>
         </div>
 
@@ -217,16 +219,16 @@ export default function Today() {
         {step === 'choose' && (
           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-              <h2 className="font-bold text-slate-900 dark:text-white text-lg">ما هي حصتك الآن؟</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">اختر القسم والحصة فقط — التاريخ يتحدد تلقائياً</p>
+              <h2 className="font-bold text-slate-900 dark:text-white text-lg">{t('what_session_now')}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('choose_class_session')}</p>
             </div>
 
             <div className="p-6 space-y-5">
               {/* Class picker */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">القسم</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">{t('class_label')}</label>
                 {teacherClasses.length === 0 ? (
-                  <p className="text-sm text-amber-600 dark:text-amber-400">لم يتم تعيينك لأي قسم بعد</p>
+                  <p className="text-sm text-amber-600 dark:text-amber-400">{t('not_assigned_any_class')}</p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {teacherClasses.map(cls => (
@@ -249,7 +251,7 @@ export default function Today() {
 
               {/* Session picker */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">الحصة</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">{t('session_label')}</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[1,2,3,4,5,6,7,8].map(n => (
                     <button
@@ -274,7 +276,7 @@ export default function Today() {
                 className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 text-base"
               >
                 <Users className="w-5 h-5" />
-                عرض قائمة الطلاب
+                {t('show_students_list')}
               </button>
             </div>
           </div>
@@ -301,8 +303,8 @@ export default function Today() {
               </div>
               {/* Live stat pills */}
               <div className="flex gap-2">
-                <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-full">{stats.present} حاضر</span>
-                <span className="px-2.5 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full">{stats.absent} غائب</span>
+                <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-full">{stats.present} {t('present_count')}</span>
+                <span className="px-2.5 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full">{stats.absent} {t('absent_count')}</span>
               </div>
             </div>
 
@@ -311,7 +313,7 @@ export default function Today() {
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-amber-800 dark:text-amber-300">تنبيه: طلاب بغيابات متكررة هذا الشهر</p>
+                  <p className="text-sm font-bold text-amber-800 dark:text-amber-300">{t('repeated_absences_alert')}</p>
                   <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">{absenteeAlert.join('، ')}</p>
                 </div>
               </div>
@@ -322,7 +324,7 @@ export default function Today() {
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-center gap-3">
                 <Check className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
-                  {step === 'done' ? 'تم حفظ الحضور بنجاح ✓' : 'هذه الحصة سُجِّلت مسبقاً — عرض للقراءة فقط'}
+                  {step === 'done' ? t('saved_successfully') : t('session_already_saved')}
                 </p>
               </div>
             )}
@@ -331,10 +333,10 @@ export default function Today() {
             {!hasExisting && (
               <div className="flex gap-2">
                 <button onClick={() => markAll('present')} className="flex-1 py-2.5 text-sm font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl hover:bg-emerald-100 transition-colors">
-                  ✓ الكل حاضر
+                  {t('mark_all_present_short')}
                 </button>
                 <button onClick={() => markAll('absent')} className="flex-1 py-2.5 text-sm font-bold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl hover:bg-red-100 transition-colors">
-                  ✗ الكل غائب
+                  {t('mark_all_absent_short')}
                 </button>
               </div>
             )}
@@ -377,7 +379,7 @@ export default function Today() {
                           {student.full_name}
                         </p>
                         {isRepeatedAbsentee && (
-                          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">⚠ غيابات متكررة</p>
+                          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">{t('repeated_absences_notice')}</p>
                         )}
                       </div>
                     </div>
@@ -386,7 +388,7 @@ export default function Today() {
                       isAbsent  ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' :
                       'bg-slate-100 dark:bg-slate-700 text-slate-400'
                     }`}>
-                      {isPresent ? 'حاضر' : isAbsent ? 'غائب' : '—'}
+                      {isPresent ? t('status_present') : isAbsent ? t('status_absent') : t('status_unmarked')}
                     </span>
                   </button>
                 );
@@ -401,7 +403,7 @@ export default function Today() {
                 className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 text-base"
               >
                 <Save className="w-5 h-5" />
-                {saving ? 'جاري الحفظ...' : `حفظ حضور ${stats.total} طالب`}
+                {saving ? t('saving_attendance') : t('save_attendance_button', { count: stats.total })}
               </button>
             )}
 
@@ -412,7 +414,7 @@ export default function Today() {
                 className="w-full py-3 border-2 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center justify-center gap-2"
               >
                 <ChevronRight className="w-4 h-4" />
-                تسجيل حصة أخرى
+                {t('record_another_session')}
               </button>
             )}
           </div>

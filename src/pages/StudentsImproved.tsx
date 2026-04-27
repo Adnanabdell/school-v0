@@ -164,7 +164,7 @@ export default function StudentsImproved() {
             onChange={(e) => setSelectedClassId(e.target.value)}
             className="px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
           >
-            <option value="all">جميع الصفوف</option>
+            <option value="all">جميع الأقسام</option>
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>{cls.name}</option>
             ))}

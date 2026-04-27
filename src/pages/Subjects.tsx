@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.ts';
 
-// Define the type for a Subject
 interface Subject {
   id: string;
   name: string;
@@ -17,7 +16,6 @@ export default function Subjects() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // State for the modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [currentSubject, setCurrentSubject] = useState<Partial<Subject>>({});
@@ -36,7 +34,7 @@ export default function Subjects() {
       setSubjects(data as Subject[]);
     } catch (error: any) {
       console.error('Error fetching subjects:', error);
-      setError('<t('error_loading_subjects')>. الرجاء المحاولة مرة أخرى.');
+      setError(t('error_loading_subjects'));
     } finally {
       setLoading(false);
     }
@@ -68,29 +66,25 @@ export default function Subjects() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const subjectData = {
       name: currentSubject.name,
       coefficient: currentSubject.coefficient,
     };
-
     try {
       if (currentSubject.id) {
-        // Update existing subject
         const { error } = await supabase.from('subjects').update(subjectData).eq('id', currentSubject.id);
         if (error) throw error;
       } else {
-        // Create new subject
         const { error } = await supabase.from('subjects').insert([subjectData]);
         if (error) throw error;
       }
       closeModal();
       fetchSubjects();
-      setSuccessMessage('تم <t('save')> بيانات المادة بنجاح');
+      setSuccessMessage(t('subject_saved_success'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
       console.error('Error saving subject:', error);
-      setError('حدث خطأ أثناء <t('save')> بيانات المادة.');
+      setError(t('error_saving_subject'));
     }
   };
 
@@ -99,11 +93,11 @@ export default function Subjects() {
     const { error } = await supabase.from('subjects').delete().eq('id', currentSubject.id);
     if (error) {
       console.error('Error deleting subject:', error);
-      setError('حدث خطأ أثناء <t('delete')> المادة.');
+      setError(t('error_deleting_subject'));
     } else {
       closeDeleteConfirm();
       fetchSubjects();
-      setSuccessMessage('تم <t('delete')> المادة بنجاح');
+      setSuccessMessage(t('subject_deleted_success'));
       setTimeout(() => setSuccessMessage(null), 3000);
     }
   };
@@ -123,7 +117,7 @@ export default function Subjects() {
         </button>
       </div>
 
-      {loading && <p className="text-center py-10 text-slate-500 dark:text-slate-400">{t('loading_data')}</p>}
+      {loading && <p className="text-center py-10 text-slate-500 dark:text-slate-400">{t('loading')}</p>}
       {error && <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg relative mb-4" role="alert">{error}</div>}
       {successMessage && <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-lg relative mb-4" role="alert">{successMessage}</div>}
 
@@ -133,9 +127,9 @@ export default function Subjects() {
             <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-700">
               <thead className="bg-slate-50 dark:bg-slate-900/50">
                 <tr>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"><t('subject_name')></th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"><t('coefficient')></th>
-                  <th className="px-6 py-4 text-relative"><span className="sr-only"><t('actions')></span></th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('subject_name')}</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('coefficient')}</th>
+                  <th className="px-6 py-4 text-relative"><span className="sr-only">{t('actions')}</span></th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-50 dark:divide-slate-700">
@@ -144,8 +138,8 @@ export default function Subjects() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 dark:text-white">{subject.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400 font-medium">{subject.coefficient}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-right space-x-4 space-x-reverse">
-                      <button onClick={() => openModal(subject)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"><t('edit')></button>
-                      <button onClick={() => openDeleteConfirm(subject)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"><t('delete')></button>
+                      <button onClick={() => openModal(subject)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">{t('edit')}</button>
+                      <button onClick={() => openDeleteConfirm(subject)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors">{t('delete')}</button>
                     </td>
                   </tr>
                 ))}
@@ -155,40 +149,38 @@ export default function Subjects() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto border border-slate-200 dark:border-slate-700">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{currentSubject.id ? '<t('edit')> المادة' : '<t('add_subject')>'}</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{currentSubject.id ? t('edit_subject') : t('add_subject')}</h3>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"><t('subject_name')></label>
+                  <label htmlFor="name" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{t('subject_name')}</label>
                   <input type="text" name="name" id="name" value={currentSubject.name || ''} onChange={handleFormChange} required className="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5" />
                 </div>
                 <div>
-                  <label htmlFor="coefficient" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"><t('coefficient')></label>
+                  <label htmlFor="coefficient" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{t('coefficient')}</label>
                   <input type="number" name="coefficient" id="coefficient" value={currentSubject.coefficient || ''} onChange={handleFormChange} className="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5" />
                 </div>
               </div>
               <div className="mt-8 flex justify-end gap-3">
-                <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"><t('cancel')></button>
-                <button type="submit" className="px-6 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all"><t('save')></button>
+                <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
+                <button type="submit" className="px-6 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all">{t('save')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && currentSubject && (
          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto border border-slate-200 dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white"><t('delete')> المادة</h3>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">هل أنت متأكد أنك تريد <t('delete')> المادة "{currentSubject.name}"؟</p>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('delete_subject')}</h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t('delete_subject_confirm', { name: currentSubject.name })}</p>
               <div className="mt-8 flex justify-end gap-3">
-                <button onClick={closeDeleteConfirm} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"><t('cancel')></button>
-                <button onClick={handleDelete} className="px-6 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all">تأكيد ال<t('delete')></button>
+                <button onClick={closeDeleteConfirm} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
+                <button onClick={handleDelete} className="px-6 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all">{t('confirm_delete')}</button>
               </div>
            </div>
          </div>

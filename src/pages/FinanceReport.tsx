@@ -1,6 +1,7 @@
 // src/pages/FinanceReport.tsx
 // ✨ ميزة جديدة: لوحة الإدارة المالية — ملخص الاشتراكات مع إحصاءات شاملة
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.ts';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, CheckCircle,
@@ -31,6 +32,7 @@ interface StudentRow {
 }
 
 export default function FinanceReport() {
+  const { t } = useTranslation();
   const today = new Date();
 
   const buildMonthList = () => {
@@ -143,7 +145,7 @@ export default function FinanceReport() {
     const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `تقرير-مالي-${selectedMonth}.csv`; a.click();
+    a.download = t('finance_csv_filename', { month: selectedMonth }) + '.csv'; a.click();
   };
 
   // Month navigation
@@ -162,8 +164,8 @@ export default function FinanceReport() {
               <DollarSign className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white">التقرير المالي</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">نظرة شاملة على الاشتراكات والتحصيل</p>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">{t('finance_title')}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('finance_subtitle')}</p>
             </div>
           </div>
 
@@ -194,10 +196,10 @@ export default function FinanceReport() {
             {/* ── KPI Cards ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[
-                { label: 'إجمالي الطلاب', value: totalStudents, icon: Users, color: 'indigo' },
-                { label: 'دفعوا الاشتراك', value: paidCount, icon: CheckCircle, color: 'emerald' },
-                { label: 'لم يدفعوا بعد', value: unpaidCount, icon: XCircle, color: 'red' },
-                { label: 'نسبة التحصيل', value: `${collectionRate}%`, icon: TrendingUp, color: collectionRate >= 70 ? 'emerald' : 'amber' },
+                { label: t('total_students_label'), value: totalStudents, icon: Users, color: 'indigo' },
+                { label: t('paid_subscription'), value: paidCount, icon: CheckCircle, color: 'emerald' },
+                { label: t('unpaid_subscription'), value: unpaidCount, icon: XCircle, color: 'red' },
+                { label: t('collection_rate'), value: `${collectionRate}%`, icon: TrendingUp, color: collectionRate >= 70 ? 'emerald' : 'amber' },
               ].map((card, i) => (
                 <div key={i} className={`bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm`}>
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-3 bg-${card.color}-50 dark:bg-${card.color}-900/30`}>
@@ -212,7 +214,7 @@ export default function FinanceReport() {
             {/* ── Collection progress bar ── */}
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 mb-8 shadow-sm">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-slate-900 dark:text-white">تقدم التحصيل الشهري</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white">{t('monthly_collection_progress')}</h3>
                 <span className={`text-sm font-black ${collectionRate >= 70 ? 'text-emerald-600' : 'text-amber-600'}`}>{collectionRate}%</span>
               </div>
               <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -222,8 +224,8 @@ export default function FinanceReport() {
                 />
               </div>
               <div className="flex justify-between text-xs text-slate-400 mt-2">
-                <span>{paidCount} دفعوا</span>
-                <span>{unpaidCount} لم يدفعوا</span>
+                <span>{paidCount} {t('paid_count')}</span>
+                <span>{unpaidCount} {t('unpaid_count')}</span>
               </div>
             </div>
 
@@ -231,7 +233,7 @@ export default function FinanceReport() {
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 mb-8 shadow-sm">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-5">
                 <BarChart2 className="w-5 h-5 text-indigo-500" />
-                التحصيل حسب القسم
+                {t('collection_by_class')}
               </h3>
               <div className="space-y-3">
                 {classStats.map(cls => (
@@ -259,7 +261,7 @@ export default function FinanceReport() {
               <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                 <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Filter className="w-4 h-4 text-slate-400" />
-                  قائمة الطلاب
+                  {t('student_list')}
                   <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 px-2 py-0.5 rounded-full font-medium">{filteredStudents.length}</span>
                 </h3>
                 <div className="flex gap-2 flex-wrap">
@@ -268,7 +270,7 @@ export default function FinanceReport() {
                     onChange={e => setFilterClass(e.target.value)}
                     className="text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="all">كل الأقسام</option>
+                    <option value="all">{t('all_classes_filter')}</option>
                     {[...new Set(students.map(s => s.className))].map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
@@ -278,15 +280,15 @@ export default function FinanceReport() {
                     onChange={e => setFilterStatus(e.target.value as any)}
                     className="text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="all">الكل</option>
-                    <option value="paid">دفعوا</option>
-                    <option value="unpaid">لم يدفعوا</option>
+                    <option value="all">{t('all_filter')}</option>
+                    <option value="paid">{t('paid_filter')}</option>
+                    <option value="unpaid">{t('unpaid_filter')}</option>
                   </select>
                   <button
                     onClick={exportCSV}
                     className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors"
                   >
-                    <Download className="w-3.5 h-3.5" /> تصدير CSV
+                    <Download className="w-3.5 h-3.5" /> {t('export_csv_button')}
                   </button>
                 </div>
               </div>
@@ -296,11 +298,11 @@ export default function FinanceReport() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-100 dark:border-slate-700">
-                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">الطالب</th>
-                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">القسم</th>
-                      <th className="px-5 py-3 text-center text-xs font-bold text-slate-400 uppercase">الغيابات</th>
-                      <th className="px-5 py-3 text-center text-xs font-bold text-slate-400 uppercase">الحالة</th>
-                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">تاريخ الدفع</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">{t('student_name_header')}</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">{t('class_header')}</th>
+                      <th className="px-5 py-3 text-center text-xs font-bold text-slate-400 uppercase">{t('absences_header')}</th>
+                      <th className="px-5 py-3 text-center text-xs font-bold text-slate-400 uppercase">{t('status_header')}</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">{t('payment_date_header')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
@@ -321,11 +323,11 @@ export default function FinanceReport() {
                               ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                               : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                           }`}>
-                            {s.status === 'paid' ? '✓ مدفوع' : '✗ غير مدفوع'}
+                            {s.status === 'paid' ? t('paid_status') : t('unpaid_status')}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-sm text-slate-500 dark:text-slate-400">
-                          {s.paid_at ? new Date(s.paid_at).toLocaleDateString('ar-DZ') : '—'}
+                          {s.paid_at ? new Date(s.paid_at).toLocaleDateString('ar-DZ') : t('no_data')}
                         </td>
                       </tr>
                     ))}
@@ -346,14 +348,14 @@ export default function FinanceReport() {
                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                         : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                     }`}>
-                      {s.status === 'paid' ? '✓ مدفوع' : '✗ لم يدفع'}
+                      {s.status === 'paid' ? '✓ ' + t('paid_status') : '✗ ' + t('unpaid_status')}
                     </span>
                   </div>
                 ))}
               </div>
 
               {filteredStudents.length === 0 && (
-                <div className="py-16 text-center text-slate-400 dark:text-slate-500">لا يوجد طلاب يطابقون الفلتر</div>
+                <div className="py-16 text-center text-slate-400 dark:text-slate-500">{t('no_students_match_filter')}</div>
               )}
             </div>
           </>
