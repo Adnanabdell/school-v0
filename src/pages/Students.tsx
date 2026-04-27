@@ -1,12 +1,14 @@
 // src/pages/Students.tsx
 import React, { useEffect, useState, useMemo, FC, PropsWithChildren, useCallback } from 'react';
 import { supabase } from '../supabaseClient.ts';
+import { useTranslation } from 'react-i18next';
 import { Plus, ChevronDown, User, Book, Phone, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
 
 // --- TYPES --- //
 interface Student {
   id: string;
   full_name: string;
+  birth_date: string | null;
   parent_name: string;
   parent_phone: string;
   class_id: string | null;
@@ -49,6 +51,7 @@ const AccordionItem: FC<PropsWithChildren<{ title: string; subtitle: string }>> 
 
 // --- MODAL COMPONENTS --- //
 const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
+    const { t } = useTranslation();
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -56,7 +59,6 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
         if (isOpen && student?.id) {
             const fetchHistory = async () => {
                 setLoading(true);
-                // FIX: Use a single query with joins instead of 3 separate DB calls
                 const { data, error } = await supabase
                     .from('attendances')
                     .select('*, classes:class_id(id, name), teachers:teacher_id(id, full_name)')
@@ -82,8 +84,8 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden" onClick={(e) => e.stopPropagation()}>
                 <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
                     <div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">سجل الحضور والغياب</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">للطالب: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{student?.full_name}</span></p>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('attendance_history')}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('student')}: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{student?.full_name}</span></p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
                         <X className="w-6 h-6 text-slate-400" />
@@ -94,7 +96,7 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
                             <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-                            <p className="text-slate-500 dark:text-slate-400">جاري تحميل السجل...</p>
+                            <p className="text-slate-500 dark:text-slate-400">{t('loading')}</p>
                         </div>
                     ) : history.length > 0 ? (
                         <div className="space-y-4">
@@ -104,7 +106,7 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
                                         <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`} />
                                         <div>
                                             <p className="text-slate-900 dark:text-white font-bold">
-                                                {record.status === 'present' ? 'حاضر' : 'غائب'} - اليوم {record.day_number} - الحصة {record.session_number}
+                                                {record.status === 'present' ? t('present') : t('absent')} - {t('day')} {record.day_number} - {t('session')} {record.session_number}
                                             </p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                 {record.month_year} | {new Date(record.created_at).toLocaleDateString('ar-DZ')}
@@ -113,7 +115,7 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
                                     </div>
                                     <div className="text-left">
                                         <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">{record.classes?.name}</p>
-                                        <p className="text-[10px] text-slate-400 italic">بواسطة: {record.teachers?.full_name}</p>
+                                        <p className="text-[10px] text-slate-400 italic">{t('by')} {record.teachers?.full_name}</p>
                                     </div>
                                 </div>
                             ))}
@@ -123,13 +125,13 @@ const AttendanceHistoryModal = ({ isOpen, onClose, student }: any) => {
                             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <AlertTriangle className="w-8 h-8 text-slate-400" />
                             </div>
-                            <p className="text-slate-500 dark:text-slate-400">لا يوجد سجل حضور مسجل لهذا الطالب بعد.</p>
+                            <p className="text-slate-500 dark:text-slate-400">{t('no_attendance_records')}</p>
                         </div>
                     )}
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex justify-center">
-                    <button onClick={onClose} className="px-8 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-bold">إغلاق</button>
+                    <button onClick={onClose} className="px-8 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-bold">{t('close')}</button>
                 </div>
             </div>
         </div>
@@ -146,12 +148,13 @@ const FloatingLabelInput = ({ id, name, type, value, onChange, label, required }
 );
 
 const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubmit, teachers, allClasses }: any) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<Partial<Student> | null>(null);
     const [modalSelectedTeacherId, setModalSelectedTeacherId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
-            setFormData(student ? { ...student } : { full_name: '', parent_name: '', parent_phone: '', class_id: null });
+            setFormData(student ? { ...student } : { full_name: '', birth_date: '', parent_name: '', parent_phone: '', class_id: null });
             if (student?.class_id) {
                 const teacher = teachers.find((t: Teacher) => t.classes.some((c: Class) => c.id === student.class_id));
                 if (teacher) {
@@ -189,30 +192,31 @@ const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubm
                 <form onSubmit={localHandleSubmit}>
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{formData.id ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{formData.id ? t('edit_student') : t('add_student')}</h3>
                             <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
                         </div>
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div className="sm:col-span-2"><FloatingLabelInput id="full_name" name="full_name" type="text" value={formData.full_name || ''} onChange={handleFormChange} label="الاسم الكامل" required /></div>
-                            <div><FloatingLabelInput id="parent_name" name="parent_name" type="text" value={formData.parent_name || ''} onChange={handleFormChange} label="اسم ولي الأمر" /></div>
-                            <div><FloatingLabelInput id="parent_phone" name="parent_phone" type="text" value={formData.parent_phone || ''} onChange={handleFormChange} label="هاتف ولي الأمر" /></div>
+                            <div className="sm:col-span-2"><FloatingLabelInput id="full_name" name="full_name" type="text" value={formData.full_name || ''} onChange={handleFormChange} label={t('full_name')} required /></div>
+                            <div><FloatingLabelInput id="birth_date" name="birth_date" type="date" value={formData.birth_date || ''} onChange={handleFormChange} label={t('birth_date')} /></div>
+                            <div><FloatingLabelInput id="parent_name" name="parent_name" type="text" value={formData.parent_name || ''} onChange={handleFormChange} label={t('parent_name')} /></div>
+                            <div className="sm:col-span-2"><FloatingLabelInput id="parent_phone" name="parent_phone" type="text" value={formData.parent_phone || ''} onChange={handleFormChange} label={t('parent_phone')} /></div>
                             <div>
                                 <select id="teacher_id" value={modalSelectedTeacherId || ''} onChange={handleTeacherChange} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="">اختر مدرساً</option>
+                                    <option value="">{t('select_teacher')}</option>
                                     {teachers.map((t: Teacher) => (<option key={t.id} value={t.id}>{t.full_name}</option>))}
                                 </select>
                             </div>
                             <div>
                                 <select name="class_id" id="class_id" value={formData.class_id || ''} onChange={handleFormChange} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="">اختر صفاً</option>
+                                    <option value="">{t('select_class')}</option>
                                     {(modalSelectedTeacherId ? teachers.find((t: Teacher) => t.id === modalSelectedTeacherId)?.classes : allClasses)?.map((c: Class) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-4 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">إلغاء</button>
-                        <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-500 transition-colors">حفظ</button>
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
+                        <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-500 transition-colors">{t('save')}</button>
                     </div>
                 </form>
             </div>
@@ -221,6 +225,7 @@ const StudentModal = ({ isOpen, onClose, student, handleSubmit: handleParentSubm
 };
 
 const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => {
+    const { t } = useTranslation();
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
@@ -229,12 +234,12 @@ const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => 
                     <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
                         <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">حذف الطالب</h3>
-                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">هل أنت متأكد أنك تريد حذف الطالب "{student?.full_name}"؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('delete_student')}</h3>
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t('delete_student_message', { name: student?.full_name })}</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex justify-end gap-4 rounded-b-2xl border-t border-slate-100 dark:border-slate-700">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">إلغاء</button>
-                    <button onClick={handleDelete} className="px-4 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-500 transition-colors">تأكيد الحذف</button>
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">{t('cancel')}</button>
+                    <button onClick={handleDelete} className="px-4 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-500 transition-colors">{t('confirm_delete')}</button>
                 </div>
             </div>
         </div>
@@ -243,10 +248,12 @@ const DeleteConfirmModal = ({ isOpen, onClose, student, handleDelete }: any) => 
 
 // --- MAIN PAGE COMPONENT --- //
 export default function Students() {
+  const { t } = useTranslation();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [allClasses, setAllClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   // Modal State
@@ -255,7 +262,7 @@ export default function Students() {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<Partial<Student> | null>(null);
 
-  // --- DATA FETCHING & LOGIC (Unchanged) --- //
+  // --- DATA FETCHING (Optimized with JOINs like Teachers.tsx) --- //
   useEffect(() => {
     fetchData();
   }, []);
@@ -264,54 +271,33 @@ export default function Students() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch all teachers
+      // 1. Fetch all teachers with their classes (single query with JOIN)
       const { data: teachersData, error: teachersError } = await supabase
         .from('teachers')
-        .select('id, full_name');
-      
+        .select(`id, full_name, class_teachers ( classes (id, name) )`);
+
       if (teachersError) throw teachersError;
 
-      // 2. Fetch all classes
-      const { data: classesData, error: classesError } = await supabase
-        .from('classes')
-        .select('id, name');
-      
-      if (classesError) throw classesError;
-
-      // 3. Fetch class-teacher assignments
-      const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('class_teachers')
-        .select('teacher_id, class_id');
-      
-      if (assignmentsError) throw assignmentsError;
-
-      // 4. Fetch all students
+      // 2. Fetch all students (single query)
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
-        .select('id, full_name, parent_name, parent_phone, class_id');
-      
+        .select('id, full_name, birth_date, parent_name, parent_phone, class_id');
+
       if (studentsError) throw studentsError;
 
-      // 5. Transform data into the structure expected by the component
-      const transformedTeachers = (teachersData || []).map(t => {
-        const teacherClassIds = (assignmentsData || [])
-          .filter(a => a.teacher_id === t.id)
-          .map(a => a.class_id);
-        
-        const teacherClasses = (classesData || [])
-          .filter(c => teacherClassIds.includes(c.id))
-          .map(c => ({
+      // Transform teachers with nested classes
+      const transformedTeachers = (teachersData || []).map((t: any) => ({
+        id: t.id,
+        full_name: t.full_name,
+        classes: (t.class_teachers || [])
+          .map((ct: any) => ct.classes)
+          .filter(Boolean)
+          .map((c: any) => ({
             ...c,
-            students: (studentsData || []).filter(s => s.class_id === c.id),
-            teachers: [] // Not strictly needed for the accordion
-          }));
-
-        return {
-          id: t.id,
-          full_name: t.full_name,
-          classes: teacherClasses
-        };
-      });
+            students: (studentsData || []).filter((s: any) => s.class_id === c.id),
+            teachers: []
+          }))
+      }));
 
       setTeachers(transformedTeachers);
 
@@ -319,24 +305,38 @@ export default function Students() {
         setSelectedTeacherId(transformedTeachers[0].id);
       }
 
-      const transformedClasses = (classesData || []).map(c => ({
-        ...c,
-        students: (studentsData || []).filter(s => s.class_id === c.id),
-        teachers: []
-      }));
-      
-      setAllClasses(transformedClasses);
+      // All classes with their students
+      const classMap = new Map();
+      (studentsData || []).forEach((s: any) => {
+        if (s.class_id) {
+          if (!classMap.has(s.class_id)) {
+            classMap.set(s.class_id, []);
+          }
+          classMap.get(s.class_id).push(s);
+        }
+      });
+
+      // Get unique classes from teachers' class_teachers
+      const uniqueClasses = Array.from(
+        new Map(
+          transformedTeachers
+            .flatMap((t: Teacher) => t.classes)
+            .map((c: any) => [c.id, { ...c, students: classMap.get(c.id) || [] }])
+        ).values()
+      );
+
+      setAllClasses(uniqueClasses);
 
     } catch (error: any) {
       console.error('Error fetching data:', error);
-      setError('لا يمكن تحميل البيانات. الرجاء المحاولة مرة أخرى.');
+      setError(t('error_loading_data'));
     } finally {
       setLoading(false);
     }
   };
 
   const openModal = useCallback((student: Partial<Student> | null = null) => {
-    setCurrentStudent(student ? { ...student } : { full_name: '', parent_name: '', parent_phone: '', class_id: null });
+    setCurrentStudent(student ? { ...student } : { full_name: '', birth_date: '', parent_name: '', parent_phone: '', class_id: null });
     setIsModalOpen(true);
   }, []);
 
@@ -354,32 +354,39 @@ export default function Students() {
 
   const closeHistory = useCallback(() => setIsHistoryModalOpen(false), []);
 
-  
-
   const handleSubmit = useCallback(async (studentData: Partial<Student>) => {
-    const dataToSave = { full_name: studentData.full_name, parent_name: studentData.parent_name || null, parent_phone: studentData.parent_phone || null, class_id: studentData.class_id === '' ? null : studentData.class_id };
-    const { error } = studentData.id ? await supabase.from('students').update(dataToSave).eq('id', studentData.id) : await supabase.from('students').insert([dataToSave]);
+    const dataToSave = {
+      full_name: studentData.full_name,
+      birth_date: studentData.birth_date || null,
+      parent_name: studentData.parent_name || null,
+      parent_phone: studentData.parent_phone || null,
+      class_id: studentData.class_id === '' ? null : studentData.class_id
+    };
 
-    if (error) {
-      console.error('Error saving student:', error);
-      setError(`حدث خطأ: ${error.message}`);
+    if (studentData.id) {
+      await supabase.from('students').update(dataToSave).eq('id', studentData.id);
     } else {
-      closeModal();
-      fetchData();
+      await supabase.from('students').insert([dataToSave]);
     }
-  }, [closeModal, fetchData]);
+
+    closeModal();
+    setSuccessMessage(t('student_saved_success'));
+    setTimeout(() => setSuccessMessage(null), 3000);
+    fetchData();
+  }, [closeModal, fetchData, t]);
 
   const handleDelete = useCallback(async () => {
     if (!currentStudent?.id) return;
     const { error } = await supabase.from('students').delete().eq('id', currentStudent.id);
     if (error) {
-      console.error('Error deleting student:', error);
-      setError('حدث خطأ أثناء حذف الطالب.');
+      setError(t('error_deleting_student'));
     } else {
       closeDeleteConfirm();
+      setSuccessMessage(t('student_deleted_success'));
+      setTimeout(() => setSuccessMessage(null), 3000);
       fetchData();
     }
-  }, [currentStudent, closeDeleteConfirm, fetchData]);
+  }, [currentStudent, closeDeleteConfirm, fetchData, t]);
 
   const selectedTeacher = useMemo(() => teachers.find(t => t.id === selectedTeacherId), [selectedTeacherId, teachers]);
 
@@ -390,42 +397,49 @@ export default function Students() {
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">الطلاب</h1>
-            <p className="text-slate-500 dark:text-slate-400">إدارة الطلاب حسب المدرسين والصفوف</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{t('students')}</h1>
+            <p className="text-slate-500 dark:text-slate-400">{t('manage_students_by_teachers')}</p>
           </div>
           <button onClick={() => openModal()} className="group flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-full shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all duration-300 transform hover:scale-110">
             <Plus className="w-6 h-6 text-white" />
           </button>
         </header>
 
-        {/* Loading and Error States */}
-        {loading && <div className="text-center py-10 text-slate-400">جاري تحميل البيانات...</div>}
+        {/* Success & Error States */}
+        {successMessage && (
+          <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+            <span>{successMessage}</span>
+          </div>
+        )}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-4" role="alert">
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
             <AlertTriangle className="w-5 h-5" />
             <span>{error}</span>
           </div>
         )}
+        {loading && <div className="text-center py-10 text-slate-400">{t('loading')}</div>}
 
         {/* Main Content */}
-        {!loading && !error && (
+        {!loading && (
           <div>
             {/* Teacher Tabs */}
-            <div className="flex items-center border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto scrollbar-hide">
-              {teachers.map(teacher => (
-                <button key={teacher.id} onClick={() => setSelectedTeacherId(teacher.id)} className={`px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors duration-300 relative ${selectedTeacherId === teacher.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'}`}>
-                  {teacher.full_name}
-                  {selectedTeacherId === teacher.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />} 
-                </button>
-              ))}
-            </div>
+            {teachers.length > 0 && (
+              <div className="flex items-center border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto scrollbar-hide">
+                {teachers.map(teacher => (
+                  <button key={teacher.id} onClick={() => setSelectedTeacherId(teacher.id)} className={`px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors duration-300 relative ${selectedTeacherId === teacher.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'}`}>
+                    {teacher.full_name}
+                    {selectedTeacherId === teacher.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Student Accordions */}
             {selectedTeacher && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 {selectedTeacher.classes.length > 0 ? (
                   selectedTeacher.classes.map(c => (
-                    <AccordionItem key={c.id} title={c.name} subtitle={`${c.students.length} طالب`}>
+                    <AccordionItem key={c.id} title={c.name} subtitle={`${c.students.length} ${t('student').toLowerCase()}`}>
                       {c.students.length > 0 ? (
                         <>
                           {/* Desktop Table View */}
@@ -433,23 +447,25 @@ export default function Students() {
                             <table className="min-w-full">
                               <thead className="border-b border-slate-100 dark:border-slate-700">
                                 <tr>
-                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">الاسم الكامل</th>
-                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">اسم ولي الأمر</th>
-                                  <th className="relative px-6 py-3"><span className="sr-only">إجراءات</span></th>
+                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('full_name')}</th>
+                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('parent_name')}</th>
+                                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('birth_date')}</th>
+                                  <th className="relative px-6 py-3"><span className="sr-only">{t('actions')}</span></th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                                 {c.students.map(student => (
                                   <tr key={student.id} className="group hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors duration-200">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                                        <button 
+                                        <button
                                             onClick={() => openHistory(student)}
                                             className="text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-right w-full"
                                         >
                                             {student.full_name}
                                         </button>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{student.parent_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{student.parent_name || '-'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{student.birth_date || '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
                                       <div className="flex justify-end gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                         <button onClick={() => openModal(student)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"><Edit className="w-4 h-4" /></button>
@@ -477,22 +493,22 @@ export default function Students() {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                   <User className="w-4 h-4" />
-                                  <span>ولي الأمر: {student.parent_name || 'غير مسجل'}</span>
+                                  <span>{t('parent_name')}: {student.parent_name || '-'}</span>
                                 </div>
                                 {student.parent_phone && (
                                   <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-500 mt-1">
                                     <Phone className="w-4 h-4" />
-                                    <span>الهاتف: {student.parent_phone}</span>
+                                    <span>{t('phone')}: {student.parent_phone}</span>
                                   </div>
                                 )}
                               </div>
                             ))}
                           </div>
                         </>
-                      ) : <p className="text-slate-400 text-sm p-6 text-center">لا يوجد طلاب في هذا الصف.</p>}
+                      ) : <p className="text-slate-400 text-sm p-6 text-center">{t('no_students_in_class')}</p>}
                     </AccordionItem>
                   ))
-                ) : <p className="text-slate-400 text-sm p-6 text-center">هذا المدرس غير معين لأي صف.</p>}
+                ) : <p className="text-slate-400 text-sm p-6 text-center">{t('teacher_not_assigned')}</p>}
               </div>
             )}
           </div>

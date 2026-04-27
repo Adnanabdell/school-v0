@@ -1,5 +1,6 @@
 // src/pages/Evaluations.tsx
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { showError, showSuccess } from '../utils/errorHandler'; // FIX: use proper toast system
 import { supabase } from '../supabaseClient.ts';
 import { MessageSquare, User, Book, Search, Save, CheckCircle, AlertCircle, History } from 'lucide-react';
@@ -18,6 +19,7 @@ interface Evaluation {
 }
 
 export default function Evaluations() {
+  const { t } = useTranslation();
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<{id: string, name: string}[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -108,7 +110,7 @@ export default function Evaluations() {
     if (!error) {
       setSuccessId(studentId);
       setNotes(prev => ({ ...prev, [studentId]: '' }));
-      showSuccess('تم حفظ الملاحظة بنجاح'); // FIX: unified toast notification
+      showSuccess(t('note_saved_success_message')); // FIX: unified toast notification
       fetchStudentsAndEvaluations();
       setTimeout(() => setSuccessId(null), 3000);
     } else {
@@ -130,9 +132,9 @@ export default function Evaluations() {
         <header className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
             <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-            تقييم الطلاب والملاحظات التربوية
+            {t('evaluations_title')}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">اكتب ملاحظاتك حول أداء الطلاب لإرسالها لأوليائهم لاحقاً</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">{t('evaluations_subtitle')}</p>
         </header>
 
         {/* Filters */}
@@ -144,7 +146,7 @@ export default function Evaluations() {
               onChange={e => setSelectedClass(e.target.value)}
               className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white pr-10 focus:ring-2 focus:ring-indigo-500 appearance-none font-bold"
             >
-              <option value="">اختر القسم</option>
+              <option value="">{t('select_class_placeholder')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
@@ -153,7 +155,7 @@ export default function Evaluations() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder="ابحث عن طالب..." 
+              placeholder={t('search_student_placeholder')} 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white pr-10 focus:ring-2 focus:ring-indigo-500 font-bold"
@@ -166,15 +168,15 @@ export default function Evaluations() {
           <div className="flex gap-4 mb-6 flex-wrap">
             <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 shadow-sm">
               <span className="text-indigo-600 dark:text-indigo-400 text-lg font-black">{students.length}</span>
-              طالب في هذا القسم
+              {t('students_in_class')}
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 shadow-sm">
               <span className="text-emerald-600 dark:text-emerald-400 text-lg font-black">{students.filter(s => (history[s.id]?.length || 0) > 0).length}</span>
-              لديهم ملاحظات
+              {t('have_notes')}
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 shadow-sm">
               <span className="text-amber-600 dark:text-amber-400 text-lg font-black">{students.filter(s => !history[s.id]?.length).length}</span>
-              بدون ملاحظات بعد
+              {t('no_notes_yet')}
             </div>
           </div>
         )}
@@ -182,7 +184,7 @@ export default function Evaluations() {
         {/* Students List */}
         <div className="space-y-6">
           {loading ? (
-            <div className="text-center py-20 text-slate-500 dark:text-slate-400">جاري تحميل قائمة الطلاب...</div>
+            <div className="text-center py-20 text-slate-500 dark:text-slate-400">{t('loading_student_list')}</div>
           ) : filteredStudents.length > 0 ? (
             filteredStudents.map(student => (
               <div key={student.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm transition-all hover:border-indigo-200 dark:hover:border-indigo-500/50">
@@ -193,7 +195,7 @@ export default function Evaluations() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white">{student.full_name}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">كتابة ملاحظة جديدة</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400"> {t('write_new_note')}</p>
                     </div>
                   </div>
 
@@ -201,14 +203,14 @@ export default function Evaluations() {
                     <textarea
                       value={notes[student.id] || ''}
                       onChange={e => setNotes(prev => ({ ...prev, [student.id]: e.target.value }))}
-                      placeholder="اكتب ملاحظاتك هنا..."
+                      placeholder={t('write_note_placeholder')}
                       className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white min-h-[120px] focus:ring-2 focus:ring-indigo-500 transition-all resize-none text-base font-medium"
                     />
                     <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
                             {successId === student.id && (
                                 <span className="text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-1 animate-bounce">
-                                    <CheckCircle className="w-4 h-4" /> تم الحفظ بنجاح
+                                    <CheckCircle className="w-4 h-4" /> {t('note_saved_success')}
                                 </span>
                             )}
                         </div>
@@ -217,9 +219,9 @@ export default function Evaluations() {
                             disabled={savingId === student.id || !notes[student.id]?.trim()}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-lg shadow-indigo-600/20"
                         >
-                            {savingId === student.id ? 'جاري الحفظ...' : (
+                            {savingId === student.id ? t('saving_note') : (
                                 <>
-                                    <Save className="w-5 h-5" /> حفظ الملاحظة
+                                    <Save className="w-5 h-5" /> {t('save_note')}
                                 </>
                             )}
                         </button>
@@ -230,7 +232,7 @@ export default function Evaluations() {
                   {history[student.id] && history[student.id].length > 0 && (
                     <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
                       <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 mb-4">
-                        <History className="w-4 h-4" /> السجل السابق للملاحظات
+                        <History className="w-4 h-4" /> {t('previous_notes_history')}
                       </h4>
                       <div className="space-y-3">
                         {history[student.id].slice(0, 3).map((ev, idx) => (
@@ -250,7 +252,7 @@ export default function Evaluations() {
           ) : (
             <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
               <AlertCircle className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500 dark:text-slate-400">لا يوجد طلاب في هذا القسم حالياً.</p>
+              <p className="text-slate-500 dark:text-slate-400">{t('no_students_in_class')}</p>
             </div>
           )}
         </div>

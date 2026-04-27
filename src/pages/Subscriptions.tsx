@@ -1,5 +1,6 @@
 // src/pages/Subscriptions.tsx
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { showError } from '../utils/errorHandler'; // FIX: unified error system
 import { supabase } from '../supabaseClient.ts';
 import { Search, Filter, CheckCircle, XCircle, DollarSign, User, Book, Calendar, AlertTriangle, Download } from 'lucide-react';
@@ -23,6 +24,7 @@ interface Subscription {
 }
 
 export default function Subscriptions() {
+  const { t } = useTranslation();
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Record<string, Record<number, 'present' | 'absent'>>>({});
   const [subscriptions, setSubscriptions] = useState<Record<string, {status: 'paid' | 'unpaid', paid_at: string | null}>>({});
@@ -165,9 +167,9 @@ export default function Subscriptions() {
       rows.push([
         student.full_name,
         student.classes?.name || '',
-        sub.status === 'paid' ? 'مدفوع' : 'غير مدفوع',
+        sub.status === 'paid' ? t('paid') : t('unpaid'),
         sub.paid_at ? new Date(sub.paid_at).toLocaleDateString('ar-DZ') : '',
-        ...([1,2,3,4,5,6,7,8].map(n => studentAtt[n] === 'present' ? 'حاضر' : studentAtt[n] === 'absent' ? 'غائب' : '-'))
+        ...([1,2,3,4,5,6,7,8].map(n => studentAtt[n] === 'present' ? t('present') : studentAtt[n] === 'absent' ? t('absent') : '-'))
       ]);
     });
 
@@ -176,7 +178,7 @@ export default function Subscriptions() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'اشتراكات-' + monthLabel + '.csv';
+    a.download = t('subscription_csv_filename', { month: monthLabel }) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -187,9 +189,9 @@ export default function Subscriptions() {
         <header className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
             <DollarSign className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-            إدارة الاشتراكات والمدفوعات
+            {t('subscriptions_title')}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">تتبع مستحقات الطلاب الشهرية وحالة حضورهم</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">{t('subscriptions_subtitle')}</p>
         </header>
         {/* ✨ NEW FEATURE: CSV Export Button */}
         <div className="flex justify-end mb-4">
@@ -198,7 +200,7 @@ export default function Subscriptions() {
             className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-600/20"
           >
             <Download className="w-4 h-4" />
-            تصدير CSV
+            {t('export_csv')}
           </button>
         </div>
 
@@ -222,7 +224,7 @@ export default function Subscriptions() {
               onChange={e => setSelectedClass(e.target.value)}
               className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white pr-10 focus:ring-2 focus:ring-indigo-500 appearance-none font-bold"
             >
-              <option value="all">كل الأقسام</option>
+              <option value="all">{t('all_classes')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
@@ -231,7 +233,7 @@ export default function Subscriptions() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder="ابحث عن طالب..." 
+              placeholder={t('search_student')} 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white pr-10 focus:ring-2 focus:ring-indigo-500 font-bold"
@@ -245,15 +247,15 @@ export default function Subscriptions() {
             <table className="w-full text-right">
               <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400">الطالب</th>
-                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400">القسم</th>
-                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400 text-center">الحصص (1-8)</th>
-                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400 text-center">حالة الدفع</th>
+                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400">{t('student')}</th>
+                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400">{t('class')}</th>
+                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400 text-center">{t('sessions_status')}</th>
+                  <th className="px-6 py-4 text-sm font-bold text-slate-500 dark:text-slate-400 text-center">{t('payment_status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                 {loading ? (
-                  <tr><td colSpan={4} className="text-center py-20 text-slate-400 dark:text-slate-500">جاري تحميل البيانات...</td></tr>
+                  <tr><td colSpan={4} className="text-center py-20 text-slate-400 dark:text-slate-500">{t('loading_data')}</td></tr>
                 ) : filteredStudents.length > 0 ? (
                   filteredStudents.map(student => {
                     const sub = subscriptions[student.id] || { status: 'unpaid', paid_at: null };
@@ -284,7 +286,7 @@ export default function Subscriptions() {
                               return (
                                 <div 
                                   key={num}
-                                  title={`الحصة ${num}: ${status || 'لم تُسجل'}`}
+                                  title={`{t('session_num', { num })}: ${status || t('session_not_recorded')}`}
                                   className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold border transition-all ${bgColor}`}
                                 >
                                   {num}
@@ -307,19 +309,19 @@ export default function Subscriptions() {
                                 {isPaid ? (
                                 <>
                                     <CheckCircle className="w-4 h-4" />
-                                    تم الدفع
+                                    {t('mark_as_paid')}
                                 </>
                                 ) : (
                                 <>
                                     <XCircle className="w-4 h-4" />
-                                    لم يدفع
+                                    {t('mark_as_unpaid')}
                                 </>
                                 )
                                 }
                             </button>
                             {isPaid && sub.paid_at && (
                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 italic font-medium">
-                                    بتاريخ: {new Date(sub.paid_at).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}
+                                    {t('payment_date')} {new Date(sub.paid_at).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}
                                 </span>
                             )}
                           </div>
@@ -328,7 +330,7 @@ export default function Subscriptions() {
                     );
                   })
                 ) : (
-                  <tr><td colSpan={4} className="text-center py-20 text-slate-400 dark:text-slate-500">لا يوجد طلاب يطابقون البحث.</td></tr>
+                  <tr><td colSpan={4} className="text-center py-20 text-slate-400 dark:text-slate-500">{t('no_students_match')}</td></tr>
                 )}
               </tbody>
             </table>
@@ -338,7 +340,7 @@ export default function Subscriptions() {
         {/* Mobile Card View */}
         <div className="lg:hidden space-y-4">
           {loading ? (
-            <div className="text-center py-20 text-slate-400 dark:text-slate-500">جاري تحميل البيانات...</div>
+            <div className="text-center py-20 text-slate-400 dark:text-slate-500">{t('loading_data')}</div>
           ) : filteredStudents.length > 0 ? (
             filteredStudents.map(student => {
               const sub = subscriptions[student.id] || { status: 'unpaid', paid_at: null };
@@ -365,7 +367,7 @@ export default function Subscriptions() {
                           isPaid ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
                         }`}
                       >
-                        {isPaid ? 'تم الدفع' : 'لم يدفع'}
+                        {isPaid ? t('mark_as_paid') : t('mark_as_unpaid')}
                       </button>
                       {isPaid && sub.paid_at && (
                         <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
@@ -399,7 +401,7 @@ export default function Subscriptions() {
               );
             })
           ) : (
-            <div className="text-center py-20 text-slate-400 dark:text-slate-500">لا يوجد طلاب يطابقون البحث.</div>
+            <div className="text-center py-20 text-slate-400 dark:text-slate-500">{t('no_students_match')}</div>
           )}
         </div>
       </div>

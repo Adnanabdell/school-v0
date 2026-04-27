@@ -1,5 +1,6 @@
 // src/pages/Attendance.tsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.ts';
 import { CheckCircle, XCircle, User, Book, Calendar, Clock, Search, AlertTriangle, Check, TrendingUp, Download } from 'lucide-react';
 
@@ -26,6 +27,7 @@ interface AttendanceRecord {
 
 // --- MAIN PAGE COMPONENT --- //
 export default function Attendance() {
+  const { t } = useTranslation();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -134,7 +136,7 @@ export default function Attendance() {
           .eq('class_id', selectedClass);
         
         if (studentsError) {
-          setError('لا يمكن تحميل الطلاب.');
+          setError(t('error_loading_students'));
           setStudents([]);
         } else {
           setStudents(studentsData || []);
@@ -149,7 +151,7 @@ export default function Attendance() {
             .eq('session_number', selectedSession);
 
           if (attendanceError) {
-            setError('لا يمكن تحميل بيانات الحضور.');
+            setError(t('error_loading_attendance'));
             setAttendance({});
             setHasExistingData(false);
           } else {
@@ -206,10 +208,10 @@ export default function Attendance() {
     });
 
     if (upsertError) {
-      setError(`حدث خطأ أثناء حفظ الحضور: ${upsertError.message}`);
+      setError(t('error_saving_attendance') + ' ' + upsertError.message);
       console.error('Error saving attendance', upsertError);
     } else {
-      setSuccess('تم حفظ الحضور بنجاح!');
+      setSuccess(t('attendance_saved_success'));
       setTimeout(() => setSuccess(null), 3000);
     }
     setSaving(false);
@@ -234,16 +236,16 @@ export default function Attendance() {
 
   // ✨ NEW FEATURE: Export attendance to CSV
   const exportAttendanceCSV = () => {
-    const rows = [['الاسم', 'الحالة']];
+    const rows = [[t('name'), t('status')]];
     students.forEach(s => {
-      rows.push([s.full_name, attendance[s.id] === 'present' ? 'حاضر' : attendance[s.id] === 'absent' ? 'غائب' : 'لم يسجل']);
+      rows.push([s.full_name, attendance[s.id] === 'present' ? t('present') : attendance[s.id] === 'absent' ? t('absent') : t('not_recorded')]);
     });
     const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'حضور-' + selectedMonth + '-يوم' + selectedDay + '-حصة' + selectedSession + '.csv';
+    a.download = 'attendance-' + selectedMonth + '-day' + selectedDay + '-session' + selectedSession + '.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -253,8 +255,8 @@ export default function Attendance() {
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">إدارة الحضور والغياب</h1>
-            <p className="text-slate-500 dark:text-slate-400">حدد المدرس والصف لتسجيل الحضور</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{t('attendance_title')}</h1>
+            <p className="text-slate-500 dark:text-slate-400">{t('attendance_subtitle')}</p>
           </div>
         </header>
 
@@ -264,7 +266,7 @@ export default function Attendance() {
             {/* Teacher Select */}
             <div className="relative">
                 <select id="teacher" value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 appearance-none pr-10">
-                    <option value="">المدرس</option>
+                    <option value="">{t('select_teacher')}</option>
                     {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
                 </select>
                 <User className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
@@ -272,7 +274,7 @@ export default function Attendance() {
             {/* Class Select */}
             <div className="relative">
                 <select id="class" value={selectedClass} onChange={e => setSelectedClass(e.target.value)} disabled={!selectedTeacher} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 appearance-none pr-10 disabled:opacity-50">
-                    <option value="">القسم</option>
+                    <option value="">{t('select_class')}</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 <Book className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
@@ -280,7 +282,7 @@ export default function Attendance() {
             {/* Month Select */}
             <div className="relative">
                 <select id="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 appearance-none pr-10">
-                    <option value="">الشهر</option>
+                    <option value="">{t('select_month')}</option>
                     {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </select>
                 <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
@@ -288,7 +290,7 @@ export default function Attendance() {
             {/* Day Select */}
             <div className="relative">
                 <select id="day" value={selectedDay} onChange={e => setSelectedDay(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 appearance-none pr-10">
-                    <option value="">اليوم</option>
+                    <option value="">{t('select_day')}</option>
                     {days.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
                 <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
@@ -296,8 +298,8 @@ export default function Attendance() {
             {/* Session Select */}
             <div className="relative">
                 <select id="session" value={selectedSession} onChange={e => setSelectedSession(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 appearance-none pr-10">
-                    <option value="">الحصة</option>
-                    {sessions.map(s => <option key={s} value={s}>الحصة {s}</option>)}
+                    <option value="">{t('select_session')}</option>
+                    {sessions.map(s => <option key={s} value={s}>{s} — {t('session_number', { session: s })}</option>)}
                 </select>
                 <Clock className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
             </div>
@@ -308,17 +310,17 @@ export default function Attendance() {
         {formComplete && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             {loading ? (
-              <div className="text-center py-20 text-slate-400 dark:text-slate-500">جاري تحميل الطلاب...</div>
+              <div className="text-center py-20 text-slate-400 dark:text-slate-500">{t('loading_students')}</div>
             ) : (
               <div>
                 {/* ✨ NEW FEATURE: Live Stats Bar */}
                 {attendanceStats && (
                   <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: 'حاضر', count: attendanceStats.present, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-                      { label: 'غائب', count: attendanceStats.absent, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' },
-                      { label: 'لم يسجل', count: attendanceStats.unmarked, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-900/30' },
-                      { label: 'نسبة الحضور', count: attendanceStats.rate + '%', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                      { label: t('present'), count: attendanceStats.present, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                      { label: t('absent'), count: attendanceStats.absent, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' },
+                      { label: t('not_recorded'), count: attendanceStats.unmarked, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-900/30' },
+                      { label: t('attendance_rate'), count: attendanceStats.rate + '%', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
                     ].map((stat, i) => (
                       <div key={i} className={`${stat.bg} rounded-xl p-3 text-center`}>
                         <p className={`text-2xl font-black ${stat.color}`}>{stat.count}</p>
@@ -331,15 +333,14 @@ export default function Attendance() {
                 {/* Actions Header */}
                 <div className="p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100 dark:border-slate-700">
                     <div className="relative w-full md:w-1/2">
-                        <input type="text" placeholder="ابحث عن طالب..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 pl-10" />
+                        <input type="text" placeholder={t('search_student')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-indigo-500 pl-10" />
                         <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none" />
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
-                        <button onClick={() => markAll('present')} className="px-4 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors">تحديد الكل حاضر</button>
-                        <button onClick={() => markAll('absent')} className="px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">تحديد الكل غائب</button>
-                        {/* ✨ NEW FEATURE: Export button */}
+                        <button onClick={() => markAll('present')} className="px-4 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors">{t('mark_all_present')}</button>
+                        <button onClick={() => markAll('absent')} className="px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">{t('mark_all_absent')}</button>
                         <button onClick={exportAttendanceCSV} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
-                          <Download className="w-4 h-4" /> تصدير
+                          <Download className="w-4 h-4" /> {t('export')}
                         </button>
                     </div>
                 </div>
@@ -355,19 +356,19 @@ export default function Attendance() {
                           className={`flex-1 sm:flex-none px-4 py-3 sm:py-2 rounded-xl sm:rounded-full text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${attendance[student.id] === 'present' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                         >
                             <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4" />
-                            حاضر
+                            {t('present')}
                         </button>
                         <button 
                           onClick={() => handleStatusChange(student.id, 'absent')} 
                           className={`flex-1 sm:flex-none px-4 py-3 sm:py-2 rounded-xl sm:rounded-full text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${attendance[student.id] === 'absent' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                         >
                             <XCircle className="w-5 h-5 sm:w-4 sm:h-4" />
-                            غائب
+                            {t('absent')}
                         </button>
                       </div>
                     </div>
                   )) : (
-                    <div className="text-center py-10 text-slate-400 dark:text-slate-500">لا يوجد طلاب يطابقون هذا البحث.</div>
+                    <div className="text-center py-10 text-slate-400 dark:text-slate-500">{t('no_students_match_search')}</div>
                   )}
                 </div>
 
@@ -376,7 +377,7 @@ export default function Attendance() {
                     {hasExistingData && (
                         <div className="mb-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm p-3 rounded-lg flex items-center gap-2 border border-amber-100 dark:border-amber-800">
                             <AlertTriangle className="w-4 h-4"/>
-                            <span>تم تسجيل الحضور مسبقاً لهذه الحصة. لا يمكنك إعادة التسجيل لتجنب التكرار.</span>
+                            <span>{t('attendance_already_recorded')}</span>
                         </div>
                     )}
                     {error && <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm p-3 rounded-lg flex items-center gap-2 border border-red-100 dark:border-red-800"><AlertTriangle className="w-4 h-4"/>{error}</div>}
@@ -386,7 +387,7 @@ export default function Attendance() {
                         disabled={saving || hasExistingData} 
                         className="w-full px-6 py-3 text-base font-semibold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {saving ? 'جاري الحفظ...' : hasExistingData ? 'تم التسجيل مسبقاً' : 'حفظ الحضور'}
+                        {saving ? t('saving') : hasExistingData ? t('already_recorded') : t('save_attendance')}
                     </button>
                 </div>
               </div>
@@ -396,7 +397,7 @@ export default function Attendance() {
 
         {!formComplete && (
             <div className="text-center py-20 text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed">
-                <p>الرجاء تحديد جميع الخيارات أعلاه لعرض قائمة الطلاب.</p>
+                <p>{t('select_all_options_above')}</p>
             </div>
         )}
       </div>
