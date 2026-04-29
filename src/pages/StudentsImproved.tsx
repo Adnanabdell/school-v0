@@ -297,7 +297,7 @@ export default function StudentsImproved() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  الصف *
+                  القسم *
                 </label>
                 <select
                   value={formData.class_id}
@@ -305,7 +305,7 @@ export default function StudentsImproved() {
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   required
                 >
-                  <option value="">اختر الصف</option>
+                  <option value="">اختر القسم</option>
                   {classes.map(cls => (
                     <option key={cls.id} value={cls.id}>{cls.name}</option>
                   ))}

@@ -277,7 +277,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
         loading: false
       }));
 
-      showSuccess('تم إضافة الصف بنجاح');
+      showSuccess('تم إضافة القسم بنجاح');
       return data;
     } catch (error: any) {
       set({ error: error.message, loading: false });
@@ -303,7 +303,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
         loading: false
       }));
 
-      showSuccess('تم تحديث بيانات الصف بنجاح');
+      showSuccess('تم تحديث بيانات القسم بنجاح');
       return true;
     } catch (error: any) {
       set({ error: error.message, loading: false });
@@ -327,7 +327,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
         loading: false
       }));
 
-      showSuccess('تم حذف الصف بنجاح');
+      showSuccess('تم حذف القسم بنجاح');
       return true;
     } catch (error: any) {
       set({ error: error.message, loading: false });

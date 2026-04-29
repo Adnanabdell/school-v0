@@ -18,8 +18,8 @@ export const studentSchema = z.object({
     .or(z.literal('')),
   
   class_id: z.string()
-    .uuid('يرجى اختيار الصف')
-    .min(1, 'يرجى اختيار الصف')
+    .uuid('يرجى اختيار القسم')
+    .min(1, 'يرجى اختيار القسم')
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;
@@ -51,8 +51,8 @@ export type TeacherFormData = z.infer<typeof teacherSchema>;
 // Class Schema
 export const classSchema = z.object({
   name: z.string()
-    .min(2, 'اسم الصف يجب أن يكون حرفين على الأقل')
-    .max(50, 'اسم الصف طويل جداً'),
+    .min(2, 'اسم القسم يجب أن يكون حرفين على الأقل')
+    .max(50, 'اسم القسم طويل جداً'),
   
   level: z.string()
     .min(1, 'يرجى تحديد المستوى')

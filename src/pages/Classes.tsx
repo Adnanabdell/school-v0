@@ -160,11 +160,11 @@ export default function Classes() {
 
         closeModal();
         fetchData(); // Refresh all data
-        setSuccessMessage('تم حفظ بيانات الصف بنجاح');
+        setSuccessMessage('تم حفظ بيانات القسم بنجاح');
         setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
       console.error('Error saving class:', error);
-      setError('حدث خطأ أثناء حفظ بيانات الصف.');
+      setError('حدث خطأ أثناء حفظ بيانات القسم.');
     }
   };
 
@@ -178,7 +178,7 @@ export default function Classes() {
 
     if (error) {
       console.error('Error deleting class:', error);
-      setError('حدث خطأ أثناء حذف الصف.');
+      setError('حدث خطأ أثناء حذف القسم.');
     } else {
       closeDeleteConfirm();
       fetchData();
