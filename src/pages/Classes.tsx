@@ -190,7 +190,7 @@ export default function Classes() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('manage_classes')}</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">إدارة الفصول الدراسية وتعيين المدرسين</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">إدارة الأقسام الدراسية وتعيين المدرسين</p>
         </div>
         <button
           onClick={() => openModal()}
